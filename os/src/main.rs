@@ -22,6 +22,7 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
+    println!("{:#x}, {:#x}", sbss as usize, ebss as usize);
     (sbss as usize..ebss as usize).for_each(|a| {
         unsafe { (a as *mut u8).write_volatile(0) }
     });

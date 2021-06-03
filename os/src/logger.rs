@@ -1,7 +1,6 @@
 // stolen from https://github.com/rcore-os/rCore/blob/master/kernel/src/logging.rs
 use core::fmt;
 
-use lazy_static::lazy_static;
 use log::{self, Level, LevelFilter, Log, Metadata, Record};
 use crate::console;
 

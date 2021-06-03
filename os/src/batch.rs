@@ -1,6 +1,7 @@
 use core::cell::RefCell;
 use lazy_static::*;
 use crate::trap::TrapContext;
+use log::trace;
 
 const USER_STACK_SIZE: usize = 4096 * 2;
 const KERNEL_STACK_SIZE: usize = 4096 * 2;
@@ -126,4 +127,26 @@ pub fn run_next_app() -> ! {
         ) as *const _ as usize);
     }
     panic!("Unreachable in batch::run_current_app!");
+}
+
+pub fn validate_app_address(buf: *const u8) -> bool {
+
+    let current_app = APP_MANAGER.inner.borrow().get_current_app();
+    let begin = APP_MANAGER.inner.borrow().app_start[current_app - 1];
+    let end = APP_MANAGER.inner.borrow().app_start[current_app];
+
+    trace!("buf: {:#x}, begin: {:#x}, end: {:#x}, end - begin: {:#x}", buf as usize, APP_BASE_ADDRESS, APP_BASE_ADDRESS + end - begin, end - begin);
+    trace!("User stack: {:#x} - {:#x}",USER_STACK.data.as_ptr() as usize, USER_STACK.data.as_ptr() as usize + USER_STACK_SIZE);
+    if APP_BASE_ADDRESS as *const u8 <= buf && buf <  (APP_BASE_ADDRESS as usize + end - begin) as *const u8 {
+        trace!("in code");
+        true
+    } else if USER_STACK.data.as_ptr() <= buf && buf < (USER_STACK.data.as_ptr() as usize + USER_STACK_SIZE) as *const u8 {
+        trace!("in stack");
+        true
+    } else if 0x80408000 as *const u8 <= buf && buf < (0x80408000u64 + 16384) as *const u8 {
+        trace!("in heap");
+        true
+    } else {
+        false
+    }
 }
